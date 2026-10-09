@@ -22,6 +22,8 @@ Tick what you tried. Note anything that looks or feels off.
 | 8 | `/bb journal` | your pets listed with family, level, zone, time together and bond |
 | 9 | Tame a new pet | the pet is added to the journal and marked tamed |
 | 10 | Spend an hour with a pet | bond reaches "Pack Mate" with a message |
+| 11 | Click your pet in `/bb journal` | your story together: the day you met, milestones and rank-ups |
+| 12 | Let your pet get unhappy, then feed it | a "nursed back to health" chapter is added |
 
 ## Without a pet
 You can still see everything with simulations. `/bb test` lists them, for example `/bb test unhappy`, `/bb test card`, `/bb test feed`, `/bb test tame`. Each one prints `as expected` or `UNEXPECTED`.

@@ -11,5 +11,6 @@
 - Companion card: portrait, name, mood face and bond bar.
 - Bond levels (Newly Tamed to Soulbound) from time together, with a message on each level-up.
 - Alerts speak about your pet by name.
+- Our Story: each pet gets a story (meeting, rank-ups, levels, days together, zones explored, care, falls), copyable as text.
 - Pet journal: per-character pets, families, time together, copyable text.
 - `/bb` settings panel, `/bb test` simulations, `/bb debug`, module toggles, `/bb about`.

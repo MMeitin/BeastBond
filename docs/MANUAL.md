@@ -47,8 +47,21 @@ A log of your pets, per character.
 - "Time together" grows one minute per minute that the pet is out.
 - A pet is marked **tamed** if you cast Tame Beast shortly before it appeared.
 - Each pet shows its bond level too.
+- Click a pet to read its story (see below).
 - Open with `/bb journal`. **Copy / export** shows the list as plain text you can select and copy.
 - `/bb journal reset confirm` clears the current character's journal.
+
+### Our Story
+Every pet in the journal has its own story, written as you play. Click a pet in `/bb journal` to read it. Chapters are added automatically:
+- when you meet or tame the pet
+- each time your bond reaches a new rank
+- when the pet reaches level 10, 20, 30 and so on
+- when you reach 7, 30, 100 and 365 days together
+- when you have explored 5, 10 and 25 zones together
+- when you nurse the pet back to health from unhappy (1st, 10th and 50th time)
+- when the pet falls in battle
+
+The story page also shows time together, times nursed back to health, zones explored and times fallen. **Copy / export** turns the story into plain text you can paste to Discord or share with friends. Hover the companion card for a quick summary.
 
 ## Commands
 | Command | What it does |
@@ -58,7 +71,7 @@ A log of your pets, per character.
 | `/bb journal` | open the journal |
 | `/bb module <name> [on\|off]` | show or toggle a module (Guardian, FeedButton, Tracker, Journal, PetCard) |
 | `/bb reset` | reset the feed button and companion card positions |
-| `/bb test <state>` | simulate: unhappy, content, happy, dead, missing, feed, card, tame, tamecommon, tamerepeat, tamed, tamedrepeat |
+| `/bb test <state>` | simulate: unhappy, content, happy, dead, missing, feed, card, tame, tamecommon, tamerepeat, tamed, tamedrepeat, story, storyrepeat |
 | `/bb about` | version and links |
 | `/bb debug` | print diagnostic info; `debug on` / `debug off` toggles verbose messages |
 
