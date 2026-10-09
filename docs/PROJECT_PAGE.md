@@ -38,7 +38,7 @@ Install, then type `/bb` in game for the settings. No pet yet? Try `/bb test car
 Checklist: https://github.com/MMeitin/BeastBond/blob/main/docs/TESTING.md
 Manual: https://github.com/MMeitin/BeastBond/blob/main/docs/MANUAL.md
 
-Open source (MIT). Coming later: share your companion card with friends and more bond milestones.
+Open source (MIT). Coming later: deeper stats for you and your pet (using Forever's statistics), pet notes with a nickname and favorite memories, and sharing your companion card.
 ```
 
 ## Search keywords (use for the project tags / search terms)

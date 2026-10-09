@@ -56,7 +56,8 @@ Where I'd love your help is confirming it with real pets in everyday play:
 
 ## Coming later
 - Share your companion card with friends (you can already copy your pet's story from the journal)
-- Bond milestones and pet anniversaries
+- Deeper stats for you and your pet, using Forever's statistics
+- Pet notes: a nickname, personality and favorite memories for each companion
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md).

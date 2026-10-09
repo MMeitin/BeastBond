@@ -9,8 +9,6 @@ local MEDIA = "Interface\\AddOns\\BeastBond\\Media\\"
 local FACE_TEXTURE = "Interface\\PetPaperDollFrame\\UI-PetHappiness"
 local FACE_COORDS = { [1] = { 0.375, 0.5625 }, [2] = { 0.1875, 0.375 }, [3] = { 0, 0.1875 } }
 local MOOD_COLORS = { [1] = "|cffe64035", [2] = "|cffffd100", [3] = "|cff59d959" }
-local BAR_GREEN = { 0.45, 0.8, 0.35 }
-local BAR_GOLD = { 1, 0.82, 0.2 } -- Soulbound
 
 -- `sim` fakes a pet for /bb test card (cleared automatically)
 local sim
@@ -28,7 +26,7 @@ card.bg:SetTexCoord(0, 1, 0, 84 / 128)
 
 -- Portrait sits inside a gold ring
 card.portrait = card:CreateTexture(nil, "ARTWORK")
-card.portrait:SetSize(48, 48)
+card.portrait:SetSize(54, 54)
 card.portrait:SetPoint("LEFT", 18, 0)
 card.ring = card:CreateTexture(nil, "OVERLAY")
 card.ring:SetSize(64, 64)
@@ -46,25 +44,9 @@ card.face:SetTexture(FACE_TEXTURE)
 card.mood = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 card.mood:SetPoint("LEFT", card.face, "RIGHT", 5, 0)
 
--- Bond bar: dark backing, tinted glossy fill, gold groove on top, text inside
-card.bar = CreateFrame("StatusBar", nil, card)
-card.bar:SetSize(150, 14)
+-- Bond bar (shared with the journal's story view)
+card.bar = BB:CreateBondBar(card, 150, 14)
 card.bar:SetPoint("BOTTOMLEFT", 88, 14)
-card.bar:SetStatusBarTexture(MEDIA .. "barfill.tga")
-card.bar:SetMinMaxValues(0, 1)
-card.bar.back = card.bar:CreateTexture(nil, "BACKGROUND")
-card.bar.back:SetAllPoints()
-card.bar.back:SetTexture(MEDIA .. "barback.tga")
-card.bar.groove = card.bar:CreateTexture(nil, "OVERLAY", nil, 1)
-card.bar.groove:SetPoint("TOPLEFT", -6, 5)
-card.bar.groove:SetPoint("BOTTOMRIGHT", 6, -5)
-card.bar.groove:SetTexture(MEDIA .. "barframe.tga")
-card.bar.rank = card.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-card.bar.rank:SetPoint("LEFT", 6, 0)
-card.bar.rank:SetDrawLayer("OVERLAY", 3)
-card.bar.left = card.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-card.bar.left:SetPoint("RIGHT", -6, 0)
-card.bar.left:SetDrawLayer("OVERLAY", 3)
 
 -- Shift+drag to move (unless locked); position saved in BeastBondDB.cardPos
 card:SetMovable(true)
@@ -139,12 +121,7 @@ local function Update()
         card.mood:SetText("")
     end
 
-    local level, bondName, progress, nextAt = BB:BondLevel(minutes)
-    local tint = level == #BB.BOND_STEPS and BAR_GOLD or BAR_GREEN
-    card.bar:SetStatusBarColor(tint[1], tint[2], tint[3])
-    card.bar:SetValue(progress)
-    card.bar.rank:SetText(bondName)
-    card.bar.left:SetText(nextAt and ((nextAt - minutes) .. " min") or "")
+    card.bar:SetBond(minutes)
     card:Show()
 end
 BB.RefreshCard = Update

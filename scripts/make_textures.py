@@ -50,10 +50,6 @@ def card():
     d.rounded_rectangle([0, 0, W - 1, CH - 1], radius=12 * SS, outline=GOLD, width=2 * SS)
     d.rounded_rectangle([2 * SS, 2 * SS, W - 1 - 2 * SS, CH - 1 - 2 * SS], radius=10 * SS, outline=INK, width=SS)
     d.rounded_rectangle([4 * SS, 4 * SS, W - 1 - 4 * SS, CH - 1 - 4 * SS], radius=8 * SS, outline=GOLD_DARK, width=SS)
-    # soft light along the top edge
-    for i in range(10 * SS):
-        a = int(46 * (1 - i / (10 * SS)))
-        d.line([(10 * SS, 5 * SS + i), (W - 10 * SS, 5 * SS + i)], fill=(255, 235, 190, a))
     # corner studs
     for x, y in [(9, 9), (w - 10, 9), (9, ch - 10), (w - 10, ch - 10)]:
         r = 2.4 * SS

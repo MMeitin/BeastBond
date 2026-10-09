@@ -11,6 +11,7 @@
 - Companion card: portrait, name, mood face and bond bar.
 - Bond levels (Newly Tamed to Soulbound) from time together, with a message on each level-up.
 - Alerts speak about your pet by name.
+- Journal polish: header, rows, scrollbar rail, bond bar on the story page.
 - Classic WoW look: leather-and-gold companion card with a gold portrait ring and glossy bond bar, parchment journal with ink text.
 - Our Story: each pet gets a story (meeting, rank-ups, levels, days together, zones explored, care, falls), copyable as text.
 - Pet journal: per-character pets, families, time together, copyable text.
