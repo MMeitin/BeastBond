@@ -1,31 +1,33 @@
 # CurseForge / Wago project page text (paste into the project description)
 
-**Summary (one line):** Look after your hunter pet like a real companion: mood card, bond levels, caring alerts, one-click feeding and a pet journal. WoW: Forever.
+**Summary (one line):** The Hunter pet companion addon for WoW: Forever. Mood card, bond ranks, feed button, caring alerts, rare tames and a pet journal.
 
 ## Description (Markdown)
 
 ```markdown
 ![BeastBond](https://raw.githubusercontent.com/MMeitin/BeastBond/main/docs/art/banner.png)
 
-# BeastBond: look after your companions
+# BeastBond: forge the bond with your beast
 
-Your hunter pet is more than a combat tool. It's a companion that depends on you. BeastBond tells you when your friend is hungry or hurting, keeps a little status card with their mood and how close you've become, and remembers every pet you have ever raised.
+**A hunter is only as strong as the bond with their beast.**
 
-> **Help me look after your pets.** BeastBond has been tested in the Forever beta client, and I'd love more Hunters to try it with their own companions and tell me how it feels. Anything you notice makes it better for everyone.
+BeastBond is the hunter pet companion addon for World of Warcraft: Forever. Keep your beast fed, happy and at your side, watch your bond grow from *Newly Tamed* to *Soulbound*, and keep a legend of every companion that ever fought beside you.
 
-## Meet your companion
-- **Companion card**: portrait, name, mood face and a bond bar that fills as you spend time together
-- **Bond levels**: New friends, Buddies, Good friends, Inseparable, Soulbound, with a message each time you grow closer
-- **Caring alerts, by name**: "Rex is getting hungry." "Rex is very unhappy! Feed them before they run away."
-- **One-click feeding**: a native-looking feed button with your food count, movable and lockable
-- **Never lose them**: Call Pet and Revive Pet reminders, quiet while you're mounted
-- **Pet journal**: every pet you've had, with family, level, zone, time together and bond
-- **Rare tame tracker**: an alert when you spot a rare creature you can tame
+> **Join the hunt: help me forge it.** BeastBond has been tested in the Forever beta client, and I'd love more Hunters to take it into the wild with their own companions and tell me how it feels. Every report, good or bad, makes it stronger.
+
+## What your beast gets
+- **Companion card**: portrait, name, mood face and a bond bar, always where you can see it
+- **Forge the bond**: five ranks, Newly Tamed, Pack Mate, Trusted Companion, Battle-Bonded and Soulbound, earned by hunting together
+- **Pet happiness alerts, by name**: "Rex is getting hungry." "Rex is very unhappy! Feed them before they run away."
+- **Feed pet in one click**: a native-looking button with your food count, movable and lockable
+- **Never walk alone**: Call Pet and Revive Pet reminders, quiet while you're mounted
+- **Pet journal**: your legend of every beast, with family, level, zone, time together and bond rank
+- **Rare tame tracker**: an alert when a rare creature worth taming crosses your path
 
 ## Quick start
-Install, then type `/bb` in game for the settings. No pet yet? Try `/bb test card` and `/bb test unhappy` to see it in action.
+Install, then type `/bb` in game for the settings. No pet yet? Try `/bb test card` and `/bb test unhappy`.
 
-## Help me test
+## Help me test (5 minutes)
 1. Install and type `/console scriptErrors 1`, then `/reload`.
 2. Play your Hunter normally with your pet out.
 3. Type `/bb debug` and copy the output.
@@ -35,8 +37,11 @@ Install, then type `/bb` in game for the settings. No pet yet? Try `/bb test car
 Checklist: https://github.com/MMeitin/BeastBond/blob/main/docs/TESTING.md
 Manual: https://github.com/MMeitin/BeastBond/blob/main/docs/MANUAL.md
 
-Open source (MIT).
+Open source (MIT). Coming later: share your companion card with friends, bond milestones and pet anniversaries.
 ```
+
+## Search keywords (use for the project tags / search terms)
+hunter, hunter pet, pet addon, beast mastery, pet happiness, feed pet, call pet, revive pet, tame, rare tames, companion, pet journal, pet loyalty, WoW Forever, Classic+
 
 ## Project settings
 - Game: World of Warcraft, Forever / Classic+ (pick the matching game version on upload)
@@ -46,4 +51,4 @@ Open source (MIT).
 - Release type: Beta
 - Source: https://github.com/MMeitin/BeastBond
 - Issue tracker: https://github.com/MMeitin/BeastBond/issues
-- Screenshots to upload: `docs/screenshots/*.png` (add one of the companion card after `/bb test card`)
+- Screenshot order: companion card (`/bb test card`), journal, settings. The journal and settings images are in `docs/screenshots/`.

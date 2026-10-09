@@ -19,10 +19,10 @@ The bond grows with the time you spend with a pet out (counted by the Journal).
 
 | Level | Name | Time together |
 |---|---|---|
-| 1 | New friends | 0 min |
-| 2 | Buddies | 1 hour |
-| 3 | Good friends | 5 hours |
-| 4 | Inseparable | 20 hours |
+| 1 | Newly Tamed | 0 min |
+| 2 | Pack Mate | 1 hour |
+| 3 | Trusted Companion | 5 hours |
+| 4 | Battle-Bonded | 20 hours |
 | 5 | Soulbound | 50 hours |
 
 You get a message each time you reach a new level.

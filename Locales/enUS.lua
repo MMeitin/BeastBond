@@ -10,8 +10,8 @@ L.PET_DEAD = "%s has fallen. Cast Revive Pet to bring them back."
 L.PET_MISSING = "Your companion is not with you. Cast Call Pet."
 L.PET_FALLBACK = "Your pet"
 
-L.BOND = { "New friends", "Buddies", "Good friends", "Inseparable", "Soulbound" }
-L.BOND_UP = "%s and you are now %s!"
+L.BOND = { "Newly Tamed", "Pack Mate", "Trusted Companion", "Battle-Bonded", "Soulbound" }
+L.BOND_UP = "Your bond with %s has deepened: %s!"
 L.BOND_NEXT = "%s  -  %d min to go"
 L.CARD_NO_MOOD = "Your companion"
 
