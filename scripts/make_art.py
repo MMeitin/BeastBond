@@ -77,8 +77,8 @@ def banner_image(w, h):
     small = ImageFont.truetype(FONT_BOLD, int(0.062 * n_h))
     d.text((tx + 4, int(0.22 * n_h) + 4), "BeastBond", font=title, fill=(8, 7, 5))
     d.text((tx, int(0.22 * n_h)), "BeastBond", font=title, fill=GOLD_LIGHT)
-    d.text((tx, int(0.55 * n_h)), "Never lose a hunter pet again.", font=tag, fill=CREAM)
-    d.text((tx, int(0.70 * n_h)), "WORLD OF WARCRAFT: FOREVER   -   HUNTER ADDON", font=small, fill=GREEN)
+    d.text((tx, int(0.55 * n_h)), "Look after your companions.", font=tag, fill=CREAM)
+    d.text((tx, int(0.70 * n_h)), "MOOD  -  BOND  -  CARE   |   WOW: FOREVER HUNTER ADDON", font=small, fill=GREEN)
     return img.resize((w, h), Image.LANCZOS)
 
 

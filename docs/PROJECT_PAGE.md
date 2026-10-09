@@ -1,39 +1,41 @@
 # CurseForge / Wago project page text (paste into the project description)
 
-**Summary (one line):** Hunter pet guardian for WoW: Forever. Happiness alerts, one-click feeding, missing-pet warnings, rare tame tracker and a pet journal. Beta: testers wanted.
+**Summary (one line):** Look after your hunter pet like a real companion: mood card, bond levels, caring alerts, one-click feeding and a pet journal. WoW: Forever.
 
 ## Description (Markdown)
 
 ```markdown
 ![BeastBond](https://raw.githubusercontent.com/MMeitin/BeastBond/main/docs/art/banner.png)
 
-# BeastBond: never lose a hunter pet again
+# BeastBond: look after your companions
 
-BeastBond watches your hunter pet so you don't have to.
+Your hunter pet is more than a combat tool. It's a companion that depends on you. BeastBond tells you when your friend is hungry or hurting, keeps a little status card with their mood and how close you've become, and remembers every pet you have ever raised.
 
-> **BETA: testers wanted.** Built against the Forever beta and checked with simulated pet states, but not yet with many real pets. If you play a Hunter, please try it and tell me what works. The test checklist takes about 5 minutes.
+> **Help me look after your pets.** BeastBond has been tested in the Forever beta client, and I'd love more Hunters to try it with their own companions and tell me how it feels. Anything you notice makes it better for everyone.
 
-## Features
-- **Happiness alerts**: know when your pet is hungry or unhappy before it runs away
-- **One-click feed button**: shows food and count, movable, lockable, native look
-- **Missing / dead pet warnings**: Call Pet and Revive Pet reminders (quiet while mounted)
-- **Rare tame tracker**: alert when you target a rare creature you can tame
-- **Pet journal**: every pet you've had, with family, level, zone and time together
+## Meet your companion
+- **Companion card**: portrait, name, mood face and a bond bar that fills as you spend time together
+- **Bond levels**: New friends, Buddies, Good friends, Inseparable, Soulbound, with a message each time you grow closer
+- **Caring alerts, by name**: "Rex is getting hungry." "Rex is very unhappy! Feed them before they run away."
+- **One-click feeding**: a native-looking feed button with your food count, movable and lockable
+- **Never lose them**: Call Pet and Revive Pet reminders, quiet while you're mounted
+- **Pet journal**: every pet you've had, with family, level, zone, time together and bond
+- **Rare tame tracker**: an alert when you spot a rare creature you can tame
 
 ## Quick start
-Install, then type `/bb` in game for the settings. `/bb test unhappy` shows what an alert looks like without a pet.
+Install, then type `/bb` in game for the settings. No pet yet? Try `/bb test card` and `/bb test unhappy` to see it in action.
 
 ## Help me test
 1. Install and type `/console scriptErrors 1`, then `/reload`.
 2. Play your Hunter normally with your pet out.
 3. Type `/bb debug` and copy the output.
-4. Tell me what worked or what didn't:
+4. Tell me how it went, good or bad:
    https://github.com/MMeitin/BeastBond/issues/new/choose
 
-Full checklist: https://github.com/MMeitin/BeastBond/blob/main/docs/TESTING.md
+Checklist: https://github.com/MMeitin/BeastBond/blob/main/docs/TESTING.md
 Manual: https://github.com/MMeitin/BeastBond/blob/main/docs/MANUAL.md
 
-Open source (MIT). Pull requests welcome.
+Open source (MIT).
 ```
 
 ## Project settings
@@ -44,4 +46,4 @@ Open source (MIT). Pull requests welcome.
 - Release type: Beta
 - Source: https://github.com/MMeitin/BeastBond
 - Issue tracker: https://github.com/MMeitin/BeastBond/issues
-- Screenshots to upload: `docs/screenshots/*.png`
+- Screenshots to upload: `docs/screenshots/*.png` (add one of the companion card after `/bb test card`)
