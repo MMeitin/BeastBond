@@ -151,6 +151,12 @@ function BB:GetHappiness()
     return h
 end
 
+-- Re-evaluate everything that depends on a setting (called when a checkbox changes)
+function BB:RefreshAll()
+    if self.RefreshCard then self.RefreshCard() end
+    if self.RefreshFeed then self.RefreshFeed() end
+end
+
 -- Bond: how well you know a pet, from minutes spent together
 BB.BOND_STEPS = { 0, 60, 300, 1200, 3000 }
 
