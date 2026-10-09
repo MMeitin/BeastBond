@@ -288,7 +288,8 @@ local function StoryText(entry)
     return table.concat(StoryLines(entry), "\n")
 end
 
-local frame, rows = nil, {}
+local frame, rows, storyRows = nil, {}, {}
+local lastViewing
 local viewing, exporting -- viewing: entry whose story is open; exporting: showing copyable text
 
 local function GetRow(i)
@@ -325,6 +326,23 @@ local function GetRow(i)
     return row
 end
 
+local function GetStoryRow(i)
+    local row = storyRows[i]
+    if row then return row end
+    row = {}
+    row.date = frame.storyContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.date:SetWidth(76)
+    row.date:SetJustifyH("LEFT")
+    row.date:SetTextColor(0.54, 0.35, 0)
+    row.text = frame.storyContent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    row.text:SetPoint("TOPLEFT", row.date, "TOPRIGHT", 8, 0)
+    row.text:SetWidth(300)
+    row.text:SetJustifyH("LEFT")
+    row.text:SetTextColor(INK[1], INK[2], INK[3])
+    storyRows[i] = row
+    return row
+end
+
 local function RefreshJournal()
     if not frame then return end
     local entries = SortedEntries()
@@ -348,18 +366,36 @@ local function RefreshJournal()
     for i = #entries + 1, #rows do rows[i]:Hide() end
     frame.content:SetHeight(math.max(1, #entries * ROW_H))
 
-    -- story text: dark title, green section heading, amber dates
+    -- story: title block, then one row per chapter (date column + wrapped text, newest first)
     if viewing then
         frame.storyBar:SetBond(viewing.minutes)
-        local lines = StoryLines(viewing)
-        lines[1] = RED .. lines[1] .. "|r"
-        lines[6] = GREEN .. lines[6] .. "|r"
-        for i = 7, #lines do
-            local d, rest = lines[i]:match("^(%d%d%d%d%-%d%d%-%d%d)%s+(.*)$")
-            if d then lines[i] = GOLD .. d .. "|r   " .. rest end
+        if lastViewing ~= viewing then
+            frame.storyScroll:SetVerticalScroll(0)
+            lastViewing = viewing
         end
-        frame.storyText:SetText(table.concat(lines, "\n"))
-        frame.storyContent:SetHeight(frame.storyText:GetStringHeight() + 12)
+        local lines = StoryLines(viewing)
+        frame.storyText:SetText(("%s%s|r\n%s\n%s\n%s\n\n%s%s|r"):format(RED, lines[1], lines[2], lines[3], lines[4], GREEN, lines[6]))
+        local y = frame.storyText:GetStringHeight() + 8
+        local chapters = {}
+        for i = #(viewing.story or {}), 1, -1 do chapters[#chapters + 1] = viewing.story[i] end
+        if #chapters == 0 then chapters[1] = { d = "", t = "Your story is just beginning." } end
+        for i, ch in ipairs(chapters) do
+            local row = GetStoryRow(i)
+            row.date:ClearAllPoints()
+            row.date:SetPoint("TOPLEFT", frame.storyContent, "TOPLEFT", 4, -y)
+            row.date:SetText(ch.d)
+            row.text:SetText(ch.t)
+            row.date:Show()
+            row.text:Show()
+            y = y + math.max(row.text:GetStringHeight(), 14) + 6
+        end
+        for i = #chapters + 1, #storyRows do
+            storyRows[i].date:Hide()
+            storyRows[i].text:Hide()
+        end
+        frame.storyContent:SetHeight(y + 8)
+    else
+        lastViewing = nil
     end
 
     -- export text
@@ -381,6 +417,20 @@ local function RefreshJournal()
     frame.exportButton:SetText(exporting and "Back" or "Copy / export")
 end
 BB.RefreshJournal = RefreshJournal
+
+-- a dark rail with a gold edge behind a scroll area's scrollbar, so the grey arrows look deliberate
+local function AddRail(scroll)
+    local rail = scroll:CreateTexture(nil, "BACKGROUND")
+    rail:SetColorTexture(0.18, 0.11, 0.05, 0.9)
+    rail:SetWidth(22)
+    rail:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 3, 2)
+    rail:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 3, -2)
+    local edge = scroll:CreateTexture(nil, "BORDER")
+    edge:SetColorTexture(0.79, 0.64, 0.15, 0.7)
+    edge:SetWidth(1)
+    edge:SetPoint("TOPRIGHT", rail, "TOPLEFT")
+    edge:SetPoint("BOTTOMRIGHT", rail, "BOTTOMLEFT")
+end
 
 local function BuildFrame()
     frame = CreateFrame("Frame", "BeastBondJournal", UIParent, "BasicFrameTemplateWithInset")
@@ -416,10 +466,9 @@ local function BuildFrame()
 
     -- header: paw icon in a gold ring, character, totals, families
     frame.icon = top:CreateTexture(nil, "ARTWORK")
-    frame.icon:SetSize(34, 34)
-    frame.icon:SetPoint("TOPLEFT", 28, -20)
-    frame.icon:SetTexture("Interface\\Icons\\Ability_Hunter_BeastCall")
-    frame.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    frame.icon:SetSize(46, 46)
+    frame.icon:SetPoint("TOPLEFT", 22, -14)
+    frame.icon:SetTexture(MEDIA .. "emblem.tga")
     local ring = top:CreateTexture(nil, "OVERLAY")
     ring:SetSize(56, 56)
     ring:SetPoint("CENTER", frame.icon, "CENTER")
@@ -442,23 +491,12 @@ local function BuildFrame()
     divider:SetPoint("TOPLEFT", 14, -72)
     divider:SetPoint("TOPRIGHT", -14, -72)
 
-    -- a dark rail with a gold edge behind the scrollbar, so the grey arrows look deliberate
-    local rail = top:CreateTexture(nil, "BACKGROUND")
-    rail:SetColorTexture(0.18, 0.11, 0.05, 0.9)
-    rail:SetWidth(22)
-    rail:SetPoint("TOPRIGHT", page, "TOPRIGHT", -2, -86)
-    rail:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", -2, 24)
-    local railEdge = top:CreateTexture(nil, "BORDER")
-    railEdge:SetColorTexture(0.79, 0.64, 0.15, 0.7)
-    railEdge:SetWidth(1)
-    railEdge:SetPoint("TOPRIGHT", rail, "TOPLEFT")
-    railEdge:SetPoint("BOTTOMRIGHT", rail, "BOTTOMLEFT")
-
     -- list
     frame.scroll = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
     frame.scroll:SetFrameLevel(base + 3)
     frame.scroll:SetPoint("TOPLEFT", page, "TOPLEFT", 12, -92)
     frame.scroll:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", -30, 30)
+    AddRail(frame.scroll)
     frame.content = CreateFrame("Frame", nil, frame.scroll)
     frame.content:SetSize(396, 1)
     frame.scroll:SetScrollChild(frame.content)
@@ -475,6 +513,7 @@ local function BuildFrame()
     frame.storyScroll:SetFrameLevel(base + 3)
     frame.storyScroll:SetPoint("TOPLEFT", page, "TOPLEFT", 12, -120)
     frame.storyScroll:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", -30, 30)
+    AddRail(frame.storyScroll)
     frame.storyContent = CreateFrame("Frame", nil, frame.storyScroll)
     frame.storyContent:SetSize(396, 1)
     frame.storyScroll:SetScrollChild(frame.storyContent)
@@ -495,6 +534,7 @@ local function BuildFrame()
     frame.exportBox:SetFrameLevel(base + 3)
     frame.exportBox:SetPoint("TOPLEFT", page, "TOPLEFT", 12, -92)
     frame.exportBox:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", -30, 30)
+    AddRail(frame.exportBox)
     frame.edit = CreateFrame("EditBox", nil, frame.exportBox)
     frame.edit:SetMultiLine(true)
     frame.edit:SetFontObject(ChatFontNormal)

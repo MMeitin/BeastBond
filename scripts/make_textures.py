@@ -150,7 +150,39 @@ def divider():
     save(img.resize((256, 16), Image.LANCZOS), "divider.tga")
 
 
+def paw(d, cx, cy, size, fill, outline, width):
+    """Paw print centred at cx, cy; size = overall width."""
+    def ell(x, y, rx, ry):
+        d.ellipse([x - rx, y - ry, x + rx, y + ry], fill=fill, outline=outline, width=width)
+    ell(cx, cy + 0.14 * size, 0.30 * size, 0.24 * size)
+    ell(cx - 0.34 * size, cy - 0.08 * size, 0.10 * size, 0.14 * size)
+    ell(cx + 0.34 * size, cy - 0.08 * size, 0.10 * size, 0.14 * size)
+    ell(cx - 0.13 * size, cy - 0.27 * size, 0.10 * size, 0.15 * size)
+    ell(cx + 0.13 * size, cy - 0.27 * size, 0.10 * size, 0.15 * size)
+
+
+def emblem():
+    """64x64 round medallion with a gold paw: the journal's header icon (sits inside ring.tga)."""
+    n = 64 * SS
+    img = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    c = n / 2
+    disc = Image.new("RGB", (n, n))
+    px = disc.load()
+    for y in range(n):
+        for x in range(n):
+            t = min(1.0, (((x - c) ** 2 + (y - c) ** 2) ** 0.5) / c)
+            px[x, y] = lerp((62, 70, 40), (22, 26, 14), t ** 1.4)
+    mask = Image.new("L", (n, n), 0)
+    ImageDraw.Draw(mask).ellipse([0, 0, n - 1, n - 1], fill=255)
+    img.paste(disc, (0, 0), mask)
+    d = ImageDraw.Draw(img)
+    d.ellipse([3 * SS, 3 * SS, n - 3 * SS, n - 3 * SS], outline=(120, 96, 28, 200), width=SS)
+    paw(d, c + SS, c + 3 * SS, 0.66 * n, (10, 8, 4), None, 0)  # soft shadow
+    paw(d, c, c + 2 * SS, 0.66 * n, (232, 192, 84), (60, 44, 10), SS)
+    save(img.resize((64, 64), Image.LANCZOS), "emblem.tga")
+
+
 if __name__ == "__main__":
-    for fn in (card, ring, barframe, barfill, barback, parchment, divider):
+    for fn in (card, ring, emblem, barframe, barfill, barback, parchment, divider):
         fn()
     print("wrote", os.path.abspath(OUT))

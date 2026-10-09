@@ -5,7 +5,7 @@
 ## Version: @project-version@
 ## SavedVariables: BeastBondDB
 ## X-Website: https://github.com/MMeitin/BeastBond
-## IconTexture: Interface\Icons\Ability_Hunter_BeastCall
+## IconTexture: Interface\AddOns\BeastBond\Media\emblem.tga
 
 Locales\enUS.lua
 Core.lua
