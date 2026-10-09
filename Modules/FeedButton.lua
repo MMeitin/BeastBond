@@ -121,7 +121,8 @@ BB:RegisterCommand("reset", function(self)
     if InCombatLockdown() then self:Print("can't reset in combat") return end
     self.db.pos = nil
     ApplyPosition()
-    self:Print("feed button position reset")
+    if self.ResetCard then self:ResetCard() end
+    self:Print("feed button and companion card positions reset")
 end, "reset the feed button position")
 
 -- Shows the button with fake food for 15s so look, tooltip and dragging can be checked without a pet.

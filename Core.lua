@@ -1,5 +1,6 @@
 local ADDON, BB = ...
 _G.BeastBond = BB
+local L = BB.L
 
 local DB_VERSION = 1
 
@@ -10,6 +11,7 @@ BB.defaults = {
     missingPetAlert = true,
     lockFeedButton = false,
     tameAlert = true,
+    showCard = true,
     journal = {}, -- [character-realm] = { [pet key] = entry }
     debug = false,
     modules = {}, -- [name] = false disables a module
@@ -147,6 +149,21 @@ function BB:GetHappiness()
     local h = C_PetInfo.GetPetHappiness()
     if type(h) == "table" then h = h.happiness or h[1] end
     return h
+end
+
+-- Bond: how well you know a pet, from minutes spent together
+BB.BOND_STEPS = { 0, 60, 300, 1200, 3000 }
+
+-- Returns level (1..5), level name, progress toward the next level (0..1), minutes needed for the next level
+function BB:BondLevel(minutes)
+    minutes = minutes or 0
+    local level = 1
+    for i, m in ipairs(self.BOND_STEPS) do
+        if minutes >= m then level = i end
+    end
+    local from, to = self.BOND_STEPS[level], self.BOND_STEPS[level + 1]
+    local progress = to and (minutes - from) / (to - from) or 1
+    return level, L.BOND[level], progress, to
 end
 
 ---------------------------------------------------------------------------

@@ -15,6 +15,11 @@ local function Happiness()
     return BB:GetHappiness()
 end
 
+local function PetName()
+    if sim and sim.name then return sim.name end
+    return UnitName("pet") or L.PET_FALLBACK
+end
+
 local function PetExists()
     if sim and sim.pet ~= nil then return sim.pet end
     return UnitExists("pet")
@@ -44,9 +49,9 @@ local function CheckHappiness()
     if type(h) ~= "number" or h == lastHappiness then return false end
     local shown = false
     if h == 1 then
-        shown = BB:Alert(L.PET_UNHAPPY, ALERT_COOLDOWN)
+        shown = BB:Alert(L.PET_UNHAPPY:format(PetName()), ALERT_COOLDOWN)
     elseif h == 2 and lastHappiness == 3 then
-        shown = BB:Alert(L.PET_HUNGRY, ALERT_COOLDOWN)
+        shown = BB:Alert(L.PET_HUNGRY:format(PetName()), ALERT_COOLDOWN)
     end
     lastHappiness = h
     return shown
@@ -61,7 +66,7 @@ local function CheckPet()
     end
     if not ShouldHavePet() then return false end
     if PetExists() and PetDead() then
-        return BB:Alert(L.PET_DEAD, ALERT_COOLDOWN)
+        return BB:Alert(L.PET_DEAD:format(PetName()), ALERT_COOLDOWN)
     elseif not PetExists() then
         return BB:Alert(L.PET_MISSING, ALERT_COOLDOWN)
     end
@@ -100,8 +105,8 @@ local function Simulate(state, previousHappiness, check)
 end
 
 -- "happy" must stay silent; the others must alert
-BB:RegisterTest("unhappy", function() return Simulate({ happiness = 1, pet = true }, nil, CheckHappiness) end, true)
-BB:RegisterTest("content", function() return Simulate({ happiness = 2, pet = true }, 3, CheckHappiness) end, true)
-BB:RegisterTest("happy", function() return Simulate({ happiness = 3, pet = true }, nil, CheckHappiness) end, false)
-BB:RegisterTest("dead", function() return Simulate({ pet = true, dead = true, force = true }, nil, CheckPet) end, true)
+BB:RegisterTest("unhappy", function() return Simulate({ happiness = 1, pet = true, name = "Rex" }, nil, CheckHappiness) end, true)
+BB:RegisterTest("content", function() return Simulate({ happiness = 2, pet = true, name = "Rex" }, 3, CheckHappiness) end, true)
+BB:RegisterTest("happy", function() return Simulate({ happiness = 3, pet = true, name = "Rex" }, nil, CheckHappiness) end, false)
+BB:RegisterTest("dead", function() return Simulate({ pet = true, dead = true, force = true, name = "Rex" }, nil, CheckPet) end, true)
 BB:RegisterTest("missing", function() return Simulate({ pet = false, force = true }, nil, CheckPet) end, true)

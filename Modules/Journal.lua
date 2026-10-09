@@ -61,12 +61,24 @@ local function CheckPet()
     RecordPet(ReadPet())
 end
 
+-- Journal entry of the pet that is out right now (nil if none)
+function BB:CurrentPetEntry()
+    local pet = ReadPet()
+    return pet and Journal()[PetKey(pet)]
+end
+
 function mod:OnEnable()
     -- time together: one tick per minute while the pet is out
     self.ticker = C_Timer.NewTicker(60, function()
         local pet = ReadPet()
         local entry = pet and Journal()[PetKey(pet)]
-        if entry then entry.minutes = (entry.minutes or 0) + 1 end
+        if entry then
+            local before = BB:BondLevel(entry.minutes)
+            entry.minutes = (entry.minutes or 0) + 1
+            local after, bondName = BB:BondLevel(entry.minutes)
+            if after > before then BB:Alert(L.BOND_UP:format(entry.name, bondName)) end
+            if BB.RefreshCard then BB.RefreshCard() end
+        end
     end)
 end
 
@@ -171,8 +183,9 @@ local function RefreshJournal()
         local row = GetRow(i)
         row.name:SetText(e.name .. (e.tamed and ("  " .. GOLD .. "(tamed)|r") or ""))
         row.family:SetText(GREEN .. e.family .. "|r")
-        row.detail:SetText(("Level %s   -   %s   -   %s   -   %s together"):format(
-            tostring(e.level or "?"), e.zone or "?", e.date or "?", Duration(e.minutes)))
+        local _, bondName = BB:BondLevel(e.minutes)
+        row.detail:SetText(("Level %s   -   %s   -   %s   -   %s together   -   %s"):format(
+            tostring(e.level or "?"), e.zone or "?", e.date or "?", Duration(e.minutes), bondName))
         row:Show()
     end
     for i = #entries + 1, #rows do rows[i]:Hide() end
