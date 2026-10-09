@@ -1,0 +1,17 @@
+## Interface: 16001
+## Title: BeastBond
+## Notes: Hunter pet guardian: happiness alerts, feed button, rare tame tracker, stable journal.
+## Author: MMeitin
+## Version: @project-version@
+## SavedVariables: BeastBondDB
+## X-Website: https://github.com/MMeitin/BeastBond
+## IconTexture: Interface\Icons\Ability_Hunter_BeastCall
+
+Locales\enUS.lua
+Core.lua
+Data\Tames.lua
+Modules\Guardian.lua
+Modules\FeedButton.lua
+Modules\Tracker.lua
+Modules\Journal.lua
+Modules\Options.lua

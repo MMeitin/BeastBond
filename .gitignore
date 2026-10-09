@@ -1,0 +1,4 @@
+.release/
+*.zip
+dist/
+scripts/.deploy-dest

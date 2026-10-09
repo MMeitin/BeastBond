@@ -1,0 +1,14 @@
+package-as: BeastBond
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - CONTRIBUTING.md
+  - .github
+  - .editorconfig
+  - .gitattributes
+  - .luacheckrc
+  - scripts
+  - docs
