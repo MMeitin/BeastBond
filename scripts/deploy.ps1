@@ -26,8 +26,10 @@ if (-not (Test-Path (Split-Path -Parent $Dest))) {
 }
 
 # /MIR removes stale files (renamed/deleted modules) in the destination.
-robocopy $src $Dest *.lua *.toc /S /MIR /XD .git .github scripts .release | Out-Null
+# Start from an empty folder so renamed or removed files never linger (the leaf-name guard above protects against a wrong path)
+if (Test-Path $Dest) { Remove-Item $Dest -Recurse -Force }
+robocopy $src $Dest *.lua *.toc *.tga /S /XD .git .github scripts .release dist docs | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" }
 
 $branch = git -C $src branch --show-current
-Write-Host "Deployed '$branch' -> $Dest. Now /reload in game."
+Write-Host "Deployed '$branch' -> $Dest. Now /reload in game (fully restart the game if new texture files were added)."

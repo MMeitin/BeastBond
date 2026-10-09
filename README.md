@@ -18,6 +18,7 @@ BeastBond is the hunter pet companion addon for **World of Warcraft: Forever**. 
 - **Feed pet in one click**: a native-looking button appears when your pet is hungry and you carry food they like. It shows your food count and steps aside in combat.
 - **Never walk alone**: reminders to Call Pet or Revive Pet, quiet while you're mounted or on a taxi.
 - **Pet journal**: your legend of every beast, with family, level, zone, time together and bond rank.
+- **Our Story**: every pet gets its own story, written as you play: the day you met, rank-ups, milestones, zones explored, the times you nursed them back to health. Copy it and share it.
 - **Rare tame tracker**: an alert when a rare creature worth taming crosses your path.
 
 Everything can be switched on or off. See the [manual](docs/MANUAL.md).
@@ -54,8 +55,9 @@ Where I'd love your help is confirming it with real pets in everyday play:
 - **Ideas?** Same place. What would make your beast feel more legendary?
 
 ## Coming later
-- Share your companion card with friends (Discord and social media)
-- Bond milestones and pet anniversaries
+- Share your companion card with friends (you can already copy your pet's story from the journal)
+- Deeper stats for you and your pet, using Forever's statistics
+- Pet notes: a nickname, personality and favorite memories for each companion
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md).

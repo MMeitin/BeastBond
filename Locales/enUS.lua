@@ -15,6 +15,15 @@ L.BOND_UP = "Your bond with %s has deepened: %s!"
 L.BOND_NEXT = "%s  -  %d min to go"
 L.CARD_NO_MOOD = "Your companion"
 
+L.STORY_MET = "%s and you met in %s (level %d)."
+L.STORY_TAMED = "You tamed %s in %s."
+L.STORY_LEVEL = "%s reached level %d."
+L.STORY_ZONES = "%s and you have explored %d zones together."
+L.STORY_DAYS = "%s and you have been together for %d days."
+L.STORY_CARED = "You nursed %s back to health (x%d)."
+L.STORY_FELL = "%s fell in battle in %s."
+L.TIP_STORY = "Click the journal to read your story together"
+
 L.HAPPINESS = { [1] = "Unhappy", [2] = "Content", [3] = "Happy" }
 L.TIP_FEEDING = "Feed: %s (%d)"
 L.TIP_HAPPINESS = "Pet mood: %s"

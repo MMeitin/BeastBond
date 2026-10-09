@@ -3,6 +3,7 @@ local L = BB.L
 local mod = BB:NewModule("PetCard")
 
 local DEFAULT_POINT = { "CENTER", "CENTER", -320, -180 }
+local MEDIA = "Interface\\AddOns\\BeastBond\\Media\\"
 
 -- Same mood faces the default pet UI uses (one texture strip: happy | content | unhappy)
 local FACE_TEXTURE = "Interface\\PetPaperDollFrame\\UI-PetHappiness"
@@ -12,25 +13,28 @@ local MOOD_COLORS = { [1] = "|cffe64035", [2] = "|cffffd100", [3] = "|cff59d959"
 -- `sim` fakes a pet for /bb test card (cleared automatically)
 local sim
 
-local card = CreateFrame("Frame", "BeastBondCard", UIParent, "BackdropTemplate")
-card:SetSize(236, 70)
+-- Leather and gold card: 256x84 on the top of a 256x128 texture sheet
+local card = CreateFrame("Frame", "BeastBondCard", UIParent)
+card:SetSize(256, 84)
 card:SetFrameStrata("MEDIUM")
-card:SetBackdrop({
-    bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-    edgeSize = 14,
-    insets = { left = 3, right = 3, top = 3, bottom = 3 },
-})
-card:SetBackdropColor(0.05, 0.05, 0.05, 0.85)
-card:SetBackdropBorderColor(0.79, 0.64, 0.15, 1)
 card:Hide()
 
-card.portrait = card:CreateTexture(nil, "ARTWORK")
-card.portrait:SetSize(46, 46)
-card.portrait:SetPoint("LEFT", 10, 0)
+card.bg = card:CreateTexture(nil, "BACKGROUND")
+card.bg:SetAllPoints()
+card.bg:SetTexture(MEDIA .. "card.tga")
+card.bg:SetTexCoord(0, 1, 0, 84 / 128)
 
-card.name = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-card.name:SetPoint("TOPLEFT", card.portrait, "TOPRIGHT", 10, -1)
+-- Portrait sits inside a gold ring
+card.portrait = card:CreateTexture(nil, "ARTWORK")
+card.portrait:SetSize(54, 54)
+card.portrait:SetPoint("LEFT", 18, 0)
+card.ring = card:CreateTexture(nil, "OVERLAY")
+card.ring:SetSize(64, 64)
+card.ring:SetPoint("CENTER", card.portrait, "CENTER")
+card.ring:SetTexture(MEDIA .. "ring.tga")
+
+card.name = card:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+card.name:SetPoint("TOPLEFT", 88, -11)
 
 card.face = card:CreateTexture(nil, "ARTWORK")
 card.face:SetSize(16, 16)
@@ -38,19 +42,11 @@ card.face:SetPoint("TOPLEFT", card.name, "BOTTOMLEFT", 0, -3)
 card.face:SetTexture(FACE_TEXTURE)
 
 card.mood = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-card.mood:SetPoint("LEFT", card.face, "RIGHT", 4, 0)
+card.mood:SetPoint("LEFT", card.face, "RIGHT", 5, 0)
 
-card.bar = CreateFrame("StatusBar", nil, card)
-card.bar:SetSize(150, 12)
-card.bar:SetPoint("BOTTOMLEFT", card.portrait, "BOTTOMRIGHT", 10, 0)
-card.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-card.bar:SetStatusBarColor(0.67, 0.83, 0.45)
-card.bar:SetMinMaxValues(0, 1)
-card.bar.bg = card.bar:CreateTexture(nil, "BACKGROUND")
-card.bar.bg:SetAllPoints()
-card.bar.bg:SetColorTexture(0, 0, 0, 0.55)
-card.bar.text = card.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-card.bar.text:SetPoint("CENTER")
+-- Bond bar (shared with the journal's story view)
+card.bar = BB:CreateBondBar(card, 150, 14)
+card.bar:SetPoint("BOTTOMLEFT", 88, 14)
 
 -- Shift+drag to move (unless locked); position saved in BeastBondDB.cardPos
 card:SetMovable(true)
@@ -65,6 +61,26 @@ card:SetScript("OnDragStop", function(self)
     local point, _, rel, x, y = self:GetPoint()
     BB.db.cardPos = { point, rel, x, y }
 end)
+
+card:SetScript("OnEnter", function(self)
+    local entry = BB:CurrentPetEntry()
+    local name = UnitName("pet")
+    local days, cared, zones
+    if sim then
+        name, days, cared, zones = sim.name, 12, 3, 6
+    elseif entry then
+        days, cared, zones = BB:PetStats(entry)
+    end
+    if not days then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(name or L.CARD_NO_MOOD)
+    GameTooltip:AddLine(("Together for %d %s"):format(days, days == 1 and "day" or "days"), 1, 1, 1)
+    GameTooltip:AddLine(("Nursed back to health: %d"):format(cared), 1, 1, 1)
+    GameTooltip:AddLine(("Zones explored: %d"):format(zones), 1, 1, 1)
+    GameTooltip:AddLine(L.TIP_STORY, 0.6, 0.6, 0.6)
+    GameTooltip:Show()
+end)
+card:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 local function ApplyPosition()
     local p = BB.db.cardPos or DEFAULT_POINT
@@ -105,9 +121,7 @@ local function Update()
         card.mood:SetText("")
     end
 
-    local _, bondName, progress, nextAt = BB:BondLevel(minutes)
-    card.bar:SetValue(progress)
-    card.bar.text:SetText(nextAt and L.BOND_NEXT:format(bondName, nextAt - minutes) or bondName)
+    card.bar:SetBond(minutes)
     card:Show()
 end
 BB.RefreshCard = Update

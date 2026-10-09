@@ -20,5 +20,8 @@ The code is MIT licensed: fork it and change it freely. Pull requests are welcom
 - `luacheck .` (also runs on every push)
 - `bash scripts/check-toc.sh` makes sure the `.toc` lists every Lua file (also runs on every push)
 
+## Art
+`python scripts/make_textures.py` regenerates the textures in `Media/` (needs Pillow); `python scripts/make_art.py` regenerates the banner and logo in `docs/art/`. The game only sees new texture files after a full restart.
+
 ## Build a release zip
 `./scripts/package.ps1` writes `dist/BeastBond-<version>.zip` (version = newest heading in `CHANGELOG.md`).

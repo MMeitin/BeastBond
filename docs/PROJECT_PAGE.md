@@ -22,6 +22,7 @@ BeastBond is the hunter pet companion addon for World of Warcraft: Forever. Keep
 - **Feed pet in one click**: a native-looking button with your food count, movable and lockable
 - **Never walk alone**: Call Pet and Revive Pet reminders, quiet while you're mounted
 - **Pet journal**: your legend of every beast, with family, level, zone, time together and bond rank
+- **Our Story**: every pet gets its own story, written as you play: the day you met, rank-ups, milestones, zones explored, the times you nursed them back to health. Copy it and share it
 - **Rare tame tracker**: an alert when a rare creature worth taming crosses your path
 
 ## Quick start
@@ -37,11 +38,11 @@ Install, then type `/bb` in game for the settings. No pet yet? Try `/bb test car
 Checklist: https://github.com/MMeitin/BeastBond/blob/main/docs/TESTING.md
 Manual: https://github.com/MMeitin/BeastBond/blob/main/docs/MANUAL.md
 
-Open source (MIT). Coming later: share your companion card with friends, bond milestones and pet anniversaries.
+Open source (MIT). Coming later: deeper stats for you and your pet (using Forever's statistics), pet notes with a nickname and favorite memories, and sharing your companion card.
 ```
 
 ## Search keywords (use for the project tags / search terms)
-hunter, hunter pet, pet addon, beast mastery, pet happiness, feed pet, call pet, revive pet, tame, rare tames, companion, pet journal, pet loyalty, WoW Forever, Classic+
+hunter, hunter pet, pet addon, beast mastery, pet happiness, feed pet, call pet, revive pet, tame, rare tames, companion, pet journal, pet story, pet loyalty, WoW Forever, Classic+
 
 ## Project settings
 - Game: World of Warcraft, Forever / Classic+ (pick the matching game version on upload)

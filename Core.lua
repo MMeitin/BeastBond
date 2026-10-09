@@ -172,6 +172,40 @@ function BB:BondLevel(minutes)
     return level, L.BOND[level], progress, to
 end
 
+BB.MEDIA = "Interface\\AddOns\\BeastBond\\Media\\"
+local BAR_GREEN = { 0.45, 0.8, 0.35 }
+local BAR_GOLD = { 1, 0.82, 0.2 } -- Soulbound
+
+-- Bond bar: dark backing, tinted glossy fill, gold groove on top, rank on the left, minutes to the next rank on the right
+function BB:CreateBondBar(parent, width, height)
+    local bar = CreateFrame("StatusBar", nil, parent)
+    bar:SetSize(width, height)
+    bar:SetStatusBarTexture(self.MEDIA .. "barfill.tga")
+    bar:SetMinMaxValues(0, 1)
+    bar.back = bar:CreateTexture(nil, "BACKGROUND")
+    bar.back:SetAllPoints()
+    bar.back:SetTexture(self.MEDIA .. "barback.tga")
+    bar.groove = bar:CreateTexture(nil, "OVERLAY", nil, 1)
+    bar.groove:SetPoint("TOPLEFT", -6, 5)
+    bar.groove:SetPoint("BOTTOMRIGHT", 6, -5)
+    bar.groove:SetTexture(self.MEDIA .. "barframe.tga")
+    bar.rank = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    bar.rank:SetPoint("LEFT", 6, 0)
+    bar.rank:SetDrawLayer("OVERLAY", 3)
+    bar.remaining = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    bar.remaining:SetPoint("RIGHT", -6, 0)
+    bar.remaining:SetDrawLayer("OVERLAY", 3)
+    bar.SetBond = function(b, minutes)
+        local level, name, progress, nextAt = BB:BondLevel(minutes)
+        local tint = level == #BB.BOND_STEPS and BAR_GOLD or BAR_GREEN
+        b:SetStatusBarColor(tint[1], tint[2], tint[3])
+        b:SetValue(progress)
+        b.rank:SetText(name)
+        b.remaining:SetText(nextAt and ((nextAt - (minutes or 0)) .. " min") or "")
+    end
+    return bar
+end
+
 ---------------------------------------------------------------------------
 -- Slash commands: /bb [command] [args]
 ---------------------------------------------------------------------------

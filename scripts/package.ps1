@@ -30,6 +30,10 @@ foreach ($f in $files) {
     New-Item -ItemType Directory -Force (Split-Path -Parent $dest) | Out-Null
     Copy-Item (Join-Path $root $f) $dest
 }
+if (Test-Path "$root\Media") {
+    New-Item -ItemType Directory -Force "$stage\Media" | Out-Null
+    Copy-Item "$root\Media\*.tga" "$stage\Media"
+}
 Copy-Item "$root\LICENSE", "$root\CHANGELOG.md" $stage
 
 # Stamp the version where the packager would
