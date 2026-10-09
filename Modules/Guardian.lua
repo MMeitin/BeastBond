@@ -53,6 +53,7 @@ local function CheckHappiness()
     elseif h == 2 and lastHappiness == 3 then
         shown = BB:Alert(L.PET_HUNGRY:format(PetName()), ALERT_COOLDOWN)
     end
+    if lastHappiness == 1 and h >= 2 and not sim and BB.PetCaredFor then BB:PetCaredFor() end
     lastHappiness = h
     return shown
 end

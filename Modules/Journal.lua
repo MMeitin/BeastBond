@@ -5,6 +5,12 @@ local mod = BB:NewModule("Journal")
 local TAME_BEAST = 1515 -- Classic spell ID; unverified in Forever. Without it pets are still logged, just not flagged "tamed".
 local TAME_WINDOW = 45 -- seconds after a Tame Beast cast during which a new pet counts as tamed
 
+local MAX_STORY = 60 -- chapters kept per pet (the first one is never dropped)
+local LEVEL_STEPS = { 10, 20, 30, 40, 50, 60, 70, 80 }
+local ZONE_STEPS = { 5, 10, 25 }
+local DAY_STEPS = { 7, 30, 100, 365 }
+local CARE_STEPS = { 1, 10, 50 }
+
 local tameStarted
 
 local function CharKey()
@@ -23,21 +29,79 @@ local function PetKey(info)
     return info.name .. "|" .. info.family
 end
 
+---------------------------------------------------------------------------
+-- Story: chapters are added automatically as you spend time with a pet
+---------------------------------------------------------------------------
+local function AddStory(entry, text)
+    entry.story = entry.story or {}
+    table.insert(entry.story, { d = date("%Y-%m-%d"), t = text })
+    if #entry.story > MAX_STORY then table.remove(entry.story, 2) end
+    if BB.RefreshJournal then BB.RefreshJournal() end
+end
+
+-- Adds a chapter the first time `value` reaches each step; returns true if any chapter was added
+local function Milestone(entry, key, value, steps, fmt)
+    entry.ms = entry.ms or {}
+    local added = false
+    for _, step in ipairs(steps) do
+        local flag = key .. step
+        if value >= step and not entry.ms[flag] then
+            entry.ms[flag] = true
+            AddStory(entry, fmt:format(entry.name, step))
+            added = true
+        end
+    end
+    return added
+end
+
+local function CountKeys(t)
+    local n = 0
+    for _ in pairs(t or {}) do n = n + 1 end
+    return n
+end
+
+local function DaysTogether(entry)
+    local now = time()
+    return math.floor((now - (entry.since or now)) / 86400)
+end
+
+-- days together, times nursed back to health, zones explored, times fallen
+function BB:PetStats(entry)
+    return DaysTogether(entry), entry.cared or 0, CountKeys(entry.zones), entry.falls or 0
+end
+
 -- Returns true when a new entry was added
 local function RecordPet(info)
     if not (info and info.name and info.family) then return false end
     local journal = Journal()
     local key = PetKey(info)
     if journal[key] then return false end
-    journal[key] = {
+    local entry = {
         name = info.name,
         family = info.family,
         level = info.level,
         zone = info.zone,
         date = info.date,
+        since = time(),
         tamed = info.tamed or false,
         minutes = 0,
+        cared = 0,
+        falls = 0,
+        zones = {},
+        story = {},
+        ms = {},
     }
+    if info.zone then entry.zones[info.zone] = true end
+    -- a pet first seen at level 40 shouldn't instantly "reach" levels 10..40
+    for _, step in ipairs(LEVEL_STEPS) do
+        if (info.level or 0) >= step then entry.ms["lvl" .. step] = true end
+    end
+    journal[key] = entry
+    if info.tamed then
+        AddStory(entry, L.STORY_TAMED:format(info.name, info.zone or "?"))
+    else
+        AddStory(entry, L.STORY_MET:format(info.name, info.zone or "?", info.level or 0))
+    end
     BB:Print(L.JOURNAL_NEW:format(info.name, info.family))
     if BB.RefreshJournal then BB.RefreshJournal() end
     return true
@@ -67,6 +131,33 @@ function BB:CurrentPetEntry()
     return pet and Journal()[PetKey(pet)]
 end
 
+-- Called by the Guardian when the pet's mood rises from unhappy
+function BB:PetCaredFor(entry)
+    entry = entry or self:CurrentPetEntry()
+    if not entry then return false end
+    entry.cared = (entry.cared or 0) + 1
+    Milestone(entry, "care", entry.cared, CARE_STEPS, L.STORY_CARED)
+    return true
+end
+
+local function PetFell(entry, zone)
+    entry.falls = (entry.falls or 0) + 1
+    AddStory(entry, L.STORY_FELL:format(entry.name, zone or "?"))
+end
+
+-- Everything that depends on time spent together (runs once a minute while the pet is out)
+local function Tick(entry, pet)
+    entry.since = entry.since or time()
+    if pet.level and pet.level > (entry.level or 0) then entry.level = pet.level end
+    if pet.zone then
+        entry.zones = entry.zones or {}
+        entry.zones[pet.zone] = true
+    end
+    Milestone(entry, "lvl", entry.level or 0, LEVEL_STEPS, L.STORY_LEVEL)
+    Milestone(entry, "zones", CountKeys(entry.zones), ZONE_STEPS, L.STORY_ZONES)
+    Milestone(entry, "days", DaysTogether(entry), DAY_STEPS, L.STORY_DAYS)
+end
+
 function mod:OnEnable()
     -- time together: one tick per minute while the pet is out
     self.ticker = C_Timer.NewTicker(60, function()
@@ -76,7 +167,12 @@ function mod:OnEnable()
             local before = BB:BondLevel(entry.minutes)
             entry.minutes = (entry.minutes or 0) + 1
             local after, bondName = BB:BondLevel(entry.minutes)
-            if after > before then BB:Alert(L.BOND_UP:format(entry.name, bondName)) end
+            if after > before then
+                local msg = L.BOND_UP:format(entry.name, bondName)
+                BB:Alert(msg)
+                AddStory(entry, msg)
+            end
+            Tick(entry, pet)
             if BB.RefreshCard then BB.RefreshCard() end
         end
     end)
@@ -95,6 +191,21 @@ mod:On("UNIT_PET", function(_, _, unit)
     if unit == "player" then C_Timer.After(1, CheckPet) end
 end)
 mod:On("PLAYER_ENTERING_WORLD", function() C_Timer.After(3, CheckPet) end)
+
+-- Edge-triggered: one "fallen" chapter per death
+local fell
+mod:On("UNIT_HEALTH", function(_, _, unit)
+    if unit ~= "pet" then return end
+    if UnitIsDead("pet") then
+        if not fell then
+            fell = true
+            local entry = BB:CurrentPetEntry()
+            if entry then PetFell(entry, GetRealZoneText()) end
+        end
+    else
+        fell = nil
+    end
+end)
 
 ---------------------------------------------------------------------------
 -- Journal window
@@ -129,7 +240,7 @@ local function Duration(mins)
     return ("%dh %02dm"):format(math.floor(mins / 60), mins % 60)
 end
 
--- Plain text version (the export view): select all + copy
+-- Plain text version of the list (the export view): select all + copy
 local function BuildText()
     local entries = SortedEntries()
     local nFamilies, summary = FamilySummary(entries)
@@ -147,24 +258,56 @@ local function BuildText()
     return table.concat(lines, "\n")
 end
 
+-- The story of one pet as plain text lines (first line is the title); newest chapter first
+local function StoryLines(entry)
+    local days, cared, zones, falls = BB:PetStats(entry)
+    local _, bond = BB:BondLevel(entry.minutes)
+    local lines = {
+        ("%s (%s) - %s"):format(entry.name, entry.family, bond),
+        ("Together since %s (%d %s)"):format(entry.date or "?", days, days == 1 and "day" or "days"),
+        ("Time together: %s"):format(Duration(entry.minutes)),
+        ("Nursed back to health: %d   Zones explored: %d   Fallen in battle: %d"):format(cared, zones, falls),
+        "",
+        "Chapters",
+    }
+    local story = entry.story or {}
+    if #story == 0 then lines[#lines + 1] = "Your story is just beginning." end
+    for i = #story, 1, -1 do
+        lines[#lines + 1] = ("%s   %s"):format(story[i].d, story[i].t)
+    end
+    return lines
+end
+
+local function StoryText(entry)
+    return table.concat(StoryLines(entry), "\n")
+end
+
 local frame, rows = nil, {}
+local viewing, exporting -- viewing: entry whose story is open; exporting: showing copyable text
 
 local function GetRow(i)
     local row = rows[i]
     if row then return row end
-    row = CreateFrame("Frame", nil, frame.content)
+    row = CreateFrame("Button", nil, frame.content)
     row:SetHeight(ROW_H)
     row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_H)
     row:SetPoint("TOPRIGHT", 0, -(i - 1) * ROW_H)
     row.bg = row:CreateTexture(nil, "BACKGROUND")
     row.bg:SetAllPoints()
     row.bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.05 or 0)
+    row.hl = row:CreateTexture(nil, "HIGHLIGHT")
+    row.hl:SetAllPoints()
+    row.hl:SetColorTexture(1, 0.82, 0, 0.12)
     row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     row.name:SetPoint("TOPLEFT", 10, -7)
     row.family = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.family:SetPoint("TOPRIGHT", -10, -8)
     row.detail = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     row.detail:SetPoint("BOTTOMLEFT", 10, 7)
+    row:SetScript("OnClick", function(self)
+        viewing = self.entry
+        if BB.RefreshJournal then BB.RefreshJournal() end
+    end)
     rows[i] = row
     return row
 end
@@ -181,6 +324,7 @@ local function RefreshJournal()
 
     for i, e in ipairs(entries) do
         local row = GetRow(i)
+        row.entry = e
         row.name:SetText(e.name .. (e.tamed and ("  " .. GOLD .. "(tamed)|r") or ""))
         row.family:SetText(GREEN .. e.family .. "|r")
         local _, bondName = BB:BondLevel(e.minutes)
@@ -190,30 +334,34 @@ local function RefreshJournal()
     end
     for i = #entries + 1, #rows do rows[i]:Hide() end
     frame.content:SetHeight(math.max(1, #entries * ROW_H))
-    frame.empty:SetShown(#entries == 0)
-    if frame.exportBox:IsShown() then
-        local text = BuildText()
+
+    -- story text
+    if viewing then
+        local lines = StoryLines(viewing)
+        lines[1] = GOLD .. lines[1] .. "|r"
+        lines[6] = GREEN .. lines[6] .. "|r"
+        frame.storyText:SetText(table.concat(lines, "\n"))
+        frame.storyContent:SetHeight(frame.storyText:GetStringHeight() + 12)
+    end
+
+    -- export text
+    if exporting then
+        local text = viewing and StoryText(viewing) or BuildText()
         frame.edit.shown = text
         frame.edit:SetText(text)
     end
+
+    -- which view is visible
+    local listView = not viewing and not exporting
+    frame.scroll:SetShown(listView)
+    frame.empty:SetShown(listView and #entries == 0)
+    frame.hint:SetShown(listView and #entries > 0)
+    frame.storyScroll:SetShown(viewing ~= nil and not exporting)
+    frame.backButton:SetShown(viewing ~= nil and not exporting)
+    frame.exportBox:SetShown(exporting == true)
+    frame.exportButton:SetText(exporting and "Back" or "Copy / export")
 end
 BB.RefreshJournal = RefreshJournal
-
-local function SetExportMode(on)
-    frame.exportBox:SetShown(on)
-    frame.scroll:SetShown(not on)
-    frame.exportButton:SetText(on and "Back to list" or "Copy / export")
-    if on then
-        local text = BuildText()
-        frame.edit.shown = text
-        frame.edit:SetText(text)
-        frame.edit:HighlightText()
-        frame.edit:SetFocus()
-        frame.empty:Hide()
-    else
-        RefreshJournal()
-    end
-end
 
 local function BuildFrame()
     frame = CreateFrame("Frame", "BeastBondJournal", UIParent, "BasicFrameTemplateWithInset")
@@ -264,6 +412,20 @@ local function BuildFrame()
     frame.empty:SetWidth(320)
     frame.empty:SetText("No pets recorded yet.\n\nSummon or tame a pet and it will appear here, along with how long you have been together.")
 
+    -- story view
+    frame.storyScroll = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
+    frame.storyScroll:SetPoint("TOPLEFT", 14, -110)
+    frame.storyScroll:SetPoint("BOTTOMRIGHT", -34, 46)
+    frame.storyContent = CreateFrame("Frame", nil, frame.storyScroll)
+    frame.storyContent:SetSize(396, 1)
+    frame.storyScroll:SetScrollChild(frame.storyContent)
+    frame.storyText = frame.storyContent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    frame.storyText:SetPoint("TOPLEFT", 4, -2)
+    frame.storyText:SetWidth(388)
+    frame.storyText:SetJustifyH("LEFT")
+    frame.storyText:SetSpacing(3)
+    frame.storyScroll:Hide()
+
     -- export view (read-only, selectable text)
     frame.exportBox = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
     frame.exportBox:SetPoint("TOPLEFT", 14, -110)
@@ -284,9 +446,33 @@ local function BuildFrame()
     frame.exportButton:SetSize(130, 24)
     frame.exportButton:SetPoint("BOTTOMLEFT", 16, 14)
     frame.exportButton:SetText("Copy / export")
-    frame.exportButton:SetScript("OnClick", function() SetExportMode(not frame.exportBox:IsShown()) end)
+    frame.exportButton:SetScript("OnClick", function()
+        exporting = not exporting
+        RefreshJournal()
+        if exporting then
+            frame.edit:HighlightText()
+            frame.edit:SetFocus()
+        end
+    end)
 
-    frame:SetScript("OnHide", function() SetExportMode(false) end)
+    frame.backButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    frame.backButton:SetSize(130, 24)
+    frame.backButton:SetPoint("BOTTOMRIGHT", -16, 14)
+    frame.backButton:SetText("Back to journal")
+    frame.backButton:SetScript("OnClick", function()
+        viewing = nil
+        RefreshJournal()
+    end)
+    frame.backButton:Hide()
+
+    frame.hint = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    frame.hint:SetPoint("BOTTOMRIGHT", -18, 20)
+    frame.hint:SetText("Click a pet to read your story together")
+
+    frame:SetScript("OnHide", function()
+        viewing, exporting = nil, nil
+        RefreshJournal()
+    end)
     table.insert(UISpecialFrames, "BeastBondJournal")
     frame:Hide()
 end
@@ -301,6 +487,7 @@ BB:RegisterCommand("journal", function(self, arg)
     arg = arg:lower()
     if arg == "reset confirm" then
         self.db.journal[CharKey()] = nil
+        viewing, exporting = nil, nil
         self:Print("journal cleared for " .. CharKey())
         RefreshJournal()
         return
@@ -323,4 +510,38 @@ BB:RegisterTest("tamed", function() return RecordPet(FakePet("Test Boar")) end, 
 BB:RegisterTest("tamedrepeat", function() -- the same pet must not be added twice
     RecordPet(FakePet("Test Boar"))
     return RecordPet(FakePet("Test Boar"))
+end, false)
+
+-- Fresh fake pet, then feed it simulated progress. Returns the entry and whether any chapter was added.
+local function StoryRun(entry)
+    local added = false
+    local function step(key, value, steps, fmt)
+        added = Milestone(entry, key, value, steps, fmt) or added
+    end
+    step("lvl", 20, LEVEL_STEPS, L.STORY_LEVEL)
+    step("zones", 10, ZONE_STEPS, L.STORY_ZONES)
+    step("days", 30, DAY_STEPS, L.STORY_DAYS)
+    entry.cared = 10
+    step("care", 10, CARE_STEPS, L.STORY_CARED)
+    return added
+end
+
+local function FreshFake()
+    Journal()["Test Boar|Boar"] = nil
+    RecordPet(FakePet("Test Boar"))
+    return Journal()["Test Boar|Boar"]
+end
+
+BB:RegisterTest("story", function()
+    local entry = FreshFake()
+    PetFell(entry, "Test Zone")
+    local added = StoryRun(entry)
+    viewing = entry
+    local ok = pcall(ShowJournal)
+    return ok and added
+end, true)
+BB:RegisterTest("storyrepeat", function() -- the same progress must not add chapters twice
+    local entry = FreshFake()
+    StoryRun(entry)
+    return StoryRun(entry)
 end, false)

@@ -66,6 +66,26 @@ card:SetScript("OnDragStop", function(self)
     BB.db.cardPos = { point, rel, x, y }
 end)
 
+card:SetScript("OnEnter", function(self)
+    local entry = BB:CurrentPetEntry()
+    local name = UnitName("pet")
+    local days, cared, zones
+    if sim then
+        name, days, cared, zones = sim.name, 12, 3, 6
+    elseif entry then
+        days, cared, zones = BB:PetStats(entry)
+    end
+    if not days then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(name or L.CARD_NO_MOOD)
+    GameTooltip:AddLine(("Together for %d %s"):format(days, days == 1 and "day" or "days"), 1, 1, 1)
+    GameTooltip:AddLine(("Nursed back to health: %d"):format(cared), 1, 1, 1)
+    GameTooltip:AddLine(("Zones explored: %d"):format(zones), 1, 1, 1)
+    GameTooltip:AddLine(L.TIP_STORY, 0.6, 0.6, 0.6)
+    GameTooltip:Show()
+end)
+card:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
 local function ApplyPosition()
     local p = BB.db.cardPos or DEFAULT_POINT
     card:ClearAllPoints()
