@@ -195,13 +195,13 @@ function BB:CreateBondBar(parent, width, height)
     bar.remaining = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     bar.remaining:SetPoint("RIGHT", -6, 0)
     bar.remaining:SetDrawLayer("OVERLAY", 3)
-    function bar:SetBond(minutes)
+    bar.SetBond = function(b, minutes)
         local level, name, progress, nextAt = BB:BondLevel(minutes)
         local tint = level == #BB.BOND_STEPS and BAR_GOLD or BAR_GREEN
-        self:SetStatusBarColor(tint[1], tint[2], tint[3])
-        self:SetValue(progress)
-        self.rank:SetText(name)
-        self.remaining:SetText(nextAt and ((nextAt - (minutes or 0)) .. " min") or "")
+        b:SetStatusBarColor(tint[1], tint[2], tint[3])
+        b:SetValue(progress)
+        b.rank:SetText(name)
+        b.remaining:SetText(nextAt and ((nextAt - (minutes or 0)) .. " min") or "")
     end
     return bar
 end
