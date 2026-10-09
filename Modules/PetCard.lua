@@ -79,8 +79,8 @@ end
 
 local function Update()
     local _, class = UnitClass("player")
-    local active = sim or (BB.db.showCard and class == "HUNTER" and UnitExists("pet"))
-    if not active then card:Hide() return end
+    local active = sim or (class == "HUNTER" and UnitExists("pet"))
+    if not (BB.db.showCard and active) then card:Hide() return end
 
     local name, happiness, minutes
     if sim then

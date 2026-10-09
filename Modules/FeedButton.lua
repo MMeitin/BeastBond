@@ -102,6 +102,8 @@ local function Refresh()
     end
 end
 
+BB.RefreshFeed = Refresh
+
 function mod:OnEnable()
     ApplyPosition()
 end
