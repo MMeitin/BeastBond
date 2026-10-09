@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: BeastBond
-## Notes: Hunter pet guardian: happiness alerts, feed button, rare tame tracker, stable journal.
+## Notes: Hunter pet companion: mood card, bond ranks, feed button, caring alerts, rare tames and a story journal for every pet.
 ## Author: MMeitin
 ## Version: @project-version@
 ## SavedVariables: BeastBondDB
