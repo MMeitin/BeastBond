@@ -211,8 +211,14 @@ end)
 -- Journal window
 ---------------------------------------------------------------------------
 local ROW_H = 42
-local GREEN = "|cffabd473"
-local GOLD = "|cffffd100"
+local MEDIA = "Interface\\AddOns\\BeastBond\\Media\\"
+-- dark ink colors for the parchment page
+local GREEN = "|cff3d5a1e"
+local GOLD = "|cff8a5a00"
+local RED = "|cff7a1f0a"
+local INK = { 0.2, 0.12, 0.05 }
+local INK_SOFT = { 0.34, 0.24, 0.12 }
+local INK_TITLE = { 0.42, 0.13, 0.05 }
 
 local function SortedEntries()
     local entries = {}
@@ -294,16 +300,18 @@ local function GetRow(i)
     row:SetPoint("TOPRIGHT", 0, -(i - 1) * ROW_H)
     row.bg = row:CreateTexture(nil, "BACKGROUND")
     row.bg:SetAllPoints()
-    row.bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.05 or 0)
+    row.bg:SetColorTexture(0.35, 0.22, 0.08, i % 2 == 0 and 0.10 or 0)
     row.hl = row:CreateTexture(nil, "HIGHLIGHT")
     row.hl:SetAllPoints()
-    row.hl:SetColorTexture(1, 0.82, 0, 0.12)
+    row.hl:SetColorTexture(0.7, 0.45, 0.1, 0.22)
     row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     row.name:SetPoint("TOPLEFT", 10, -7)
+    row.name:SetTextColor(INK_TITLE[1], INK_TITLE[2], INK_TITLE[3])
     row.family = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.family:SetPoint("TOPRIGHT", -10, -8)
-    row.detail = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.detail = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.detail:SetPoint("BOTTOMLEFT", 10, 7)
+    row.detail:SetTextColor(INK_SOFT[1], INK_SOFT[2], INK_SOFT[3])
     row:SetScript("OnClick", function(self)
         viewing = self.entry
         if BB.RefreshJournal then BB.RefreshJournal() end
@@ -335,11 +343,15 @@ local function RefreshJournal()
     for i = #entries + 1, #rows do rows[i]:Hide() end
     frame.content:SetHeight(math.max(1, #entries * ROW_H))
 
-    -- story text
+    -- story text: dark title, green section heading, amber dates
     if viewing then
         local lines = StoryLines(viewing)
-        lines[1] = GOLD .. lines[1] .. "|r"
+        lines[1] = RED .. lines[1] .. "|r"
         lines[6] = GREEN .. lines[6] .. "|r"
+        for i = 7, #lines do
+            local d, rest = lines[i]:match("^(%d%d%d%d%-%d%d%-%d%d)%s+(.*)$")
+            if d then lines[i] = GOLD .. d .. "|r   " .. rest end
+        end
         frame.storyText:SetText(table.concat(lines, "\n"))
         frame.storyContent:SetHeight(frame.storyText:GetStringHeight() + 12)
     end
@@ -376,45 +388,73 @@ local function BuildFrame()
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
     if frame.TitleText then frame.TitleText:SetText("BeastBond Journal") end
 
-    -- header: paw icon, character, totals, families
-    frame.icon = frame:CreateTexture(nil, "ARTWORK")
-    frame.icon:SetSize(40, 40)
-    frame.icon:SetPoint("TOPLEFT", 18, -36)
+    -- Layers, bottom to top: stone frame, parchment page, header art, scrolling content, buttons.
+    -- (a frame's own textures draw below its child frames, so each layer is its own frame)
+    local base = frame.Inset and frame.Inset:GetFrameLevel() or frame:GetFrameLevel()
+    local page = CreateFrame("Frame", nil, frame)
+    if frame.Inset then
+        page:SetAllPoints(frame.Inset)
+    else
+        page:SetPoint("TOPLEFT", 8, -28)
+        page:SetPoint("BOTTOMRIGHT", -8, 38)
+    end
+    page:SetFrameLevel(base + 1)
+    page.tex = page:CreateTexture(nil, "BACKGROUND")
+    page.tex:SetAllPoints()
+    page.tex:SetTexture(MEDIA .. "parchment.tga")
+
+    local top = CreateFrame("Frame", nil, frame)
+    top:SetAllPoints(page)
+    top:SetFrameLevel(base + 2)
+
+    -- header: paw icon in a gold ring, character, totals, families
+    frame.icon = top:CreateTexture(nil, "ARTWORK")
+    frame.icon:SetSize(34, 34)
+    frame.icon:SetPoint("TOPLEFT", 31, -42)
     frame.icon:SetTexture("Interface\\Icons\\Ability_Hunter_BeastCall")
     frame.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    frame.heading = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    frame.heading:SetPoint("TOPLEFT", frame.icon, "TOPRIGHT", 10, -2)
-    frame.stats = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    local ring = top:CreateTexture(nil, "OVERLAY")
+    ring:SetSize(56, 56)
+    ring:SetPoint("CENTER", frame.icon, "CENTER")
+    ring:SetTexture(MEDIA .. "ring.tga")
+    frame.heading = top:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    frame.heading:SetPoint("TOPLEFT", ring, "TOPRIGHT", 8, -6)
+    frame.heading:SetTextColor(INK_TITLE[1], INK_TITLE[2], INK_TITLE[3])
+    frame.stats = top:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     frame.stats:SetPoint("TOPLEFT", frame.heading, "BOTTOMLEFT", 0, -4)
-    frame.families = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.families:SetPoint("TOPLEFT", frame.icon, "BOTTOMLEFT", 0, -8)
-    frame.families:SetPoint("RIGHT", frame, "RIGHT", -18, 0)
+    frame.stats:SetTextColor(INK[1], INK[2], INK[3])
+    frame.families = top:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    frame.families:SetPoint("TOPLEFT", 20, -90)
+    frame.families:SetPoint("RIGHT", top, "RIGHT", -20, 0)
     frame.families:SetJustifyH("LEFT")
 
-    -- divider
-    local line = frame:CreateTexture(nil, "ARTWORK")
-    line:SetColorTexture(0.79, 0.64, 0.15, 0.6)
-    line:SetHeight(1)
-    line:SetPoint("TOPLEFT", 14, -104)
-    line:SetPoint("TOPRIGHT", -14, -104)
+    -- ornamental divider
+    local divider = top:CreateTexture(nil, "ARTWORK")
+    divider:SetTexture(MEDIA .. "divider.tga")
+    divider:SetHeight(16)
+    divider:SetPoint("TOPLEFT", 14, -104)
+    divider:SetPoint("TOPRIGHT", -14, -104)
 
     -- list
     frame.scroll = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-    frame.scroll:SetPoint("TOPLEFT", 14, -110)
+    frame.scroll:SetFrameLevel(base + 3)
+    frame.scroll:SetPoint("TOPLEFT", 14, -124)
     frame.scroll:SetPoint("BOTTOMRIGHT", -34, 46)
     frame.content = CreateFrame("Frame", nil, frame.scroll)
     frame.content:SetSize(396, 1)
     frame.scroll:SetScrollChild(frame.content)
 
     -- empty state
-    frame.empty = frame:CreateFontString(nil, "OVERLAY", "GameFontDisable")
+    frame.empty = top:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.empty:SetPoint("CENTER", frame.scroll, "CENTER", 0, 10)
     frame.empty:SetWidth(320)
+    frame.empty:SetTextColor(INK_SOFT[1], INK_SOFT[2], INK_SOFT[3])
     frame.empty:SetText("No pets recorded yet.\n\nSummon or tame a pet and it will appear here, along with how long you have been together.")
 
     -- story view
     frame.storyScroll = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-    frame.storyScroll:SetPoint("TOPLEFT", 14, -110)
+    frame.storyScroll:SetFrameLevel(base + 3)
+    frame.storyScroll:SetPoint("TOPLEFT", 14, -124)
     frame.storyScroll:SetPoint("BOTTOMRIGHT", -34, 46)
     frame.storyContent = CreateFrame("Frame", nil, frame.storyScroll)
     frame.storyContent:SetSize(396, 1)
@@ -424,15 +464,18 @@ local function BuildFrame()
     frame.storyText:SetWidth(388)
     frame.storyText:SetJustifyH("LEFT")
     frame.storyText:SetSpacing(3)
+    frame.storyText:SetTextColor(INK[1], INK[2], INK[3])
     frame.storyScroll:Hide()
 
     -- export view (read-only, selectable text)
     frame.exportBox = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-    frame.exportBox:SetPoint("TOPLEFT", 14, -110)
+    frame.exportBox:SetFrameLevel(base + 3)
+    frame.exportBox:SetPoint("TOPLEFT", 14, -124)
     frame.exportBox:SetPoint("BOTTOMRIGHT", -34, 46)
     frame.edit = CreateFrame("EditBox", nil, frame.exportBox)
     frame.edit:SetMultiLine(true)
     frame.edit:SetFontObject(ChatFontNormal)
+    frame.edit:SetTextColor(INK[1], INK[2], INK[3])
     frame.edit:SetWidth(396)
     frame.edit:SetAutoFocus(false)
     frame.edit:SetScript("OnEscapePressed", function() frame:Hide() end)
@@ -443,6 +486,7 @@ local function BuildFrame()
     frame.exportBox:Hide()
 
     frame.exportButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    frame.exportButton:SetFrameLevel(base + 4)
     frame.exportButton:SetSize(130, 24)
     frame.exportButton:SetPoint("BOTTOMLEFT", 16, 14)
     frame.exportButton:SetText("Copy / export")
@@ -456,6 +500,7 @@ local function BuildFrame()
     end)
 
     frame.backButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    frame.backButton:SetFrameLevel(base + 4)
     frame.backButton:SetSize(130, 24)
     frame.backButton:SetPoint("BOTTOMRIGHT", -16, 14)
     frame.backButton:SetText("Back to journal")
@@ -465,8 +510,9 @@ local function BuildFrame()
     end)
     frame.backButton:Hide()
 
-    frame.hint = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    frame.hint = top:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.hint:SetPoint("BOTTOMRIGHT", -18, 20)
+    frame.hint:SetTextColor(INK_SOFT[1], INK_SOFT[2], INK_SOFT[3])
     frame.hint:SetText("Click a pet to read your story together")
 
     frame:SetScript("OnHide", function()

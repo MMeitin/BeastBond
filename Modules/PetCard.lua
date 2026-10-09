@@ -3,34 +3,40 @@ local L = BB.L
 local mod = BB:NewModule("PetCard")
 
 local DEFAULT_POINT = { "CENTER", "CENTER", -320, -180 }
+local MEDIA = "Interface\\AddOns\\BeastBond\\Media\\"
 
 -- Same mood faces the default pet UI uses (one texture strip: happy | content | unhappy)
 local FACE_TEXTURE = "Interface\\PetPaperDollFrame\\UI-PetHappiness"
 local FACE_COORDS = { [1] = { 0.375, 0.5625 }, [2] = { 0.1875, 0.375 }, [3] = { 0, 0.1875 } }
 local MOOD_COLORS = { [1] = "|cffe64035", [2] = "|cffffd100", [3] = "|cff59d959" }
+local BAR_GREEN = { 0.45, 0.8, 0.35 }
+local BAR_GOLD = { 1, 0.82, 0.2 } -- Soulbound
 
 -- `sim` fakes a pet for /bb test card (cleared automatically)
 local sim
 
-local card = CreateFrame("Frame", "BeastBondCard", UIParent, "BackdropTemplate")
-card:SetSize(236, 70)
+-- Leather and gold card: 256x84 on the top of a 256x128 texture sheet
+local card = CreateFrame("Frame", "BeastBondCard", UIParent)
+card:SetSize(256, 84)
 card:SetFrameStrata("MEDIUM")
-card:SetBackdrop({
-    bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-    edgeSize = 14,
-    insets = { left = 3, right = 3, top = 3, bottom = 3 },
-})
-card:SetBackdropColor(0.05, 0.05, 0.05, 0.85)
-card:SetBackdropBorderColor(0.79, 0.64, 0.15, 1)
 card:Hide()
 
-card.portrait = card:CreateTexture(nil, "ARTWORK")
-card.portrait:SetSize(46, 46)
-card.portrait:SetPoint("LEFT", 10, 0)
+card.bg = card:CreateTexture(nil, "BACKGROUND")
+card.bg:SetAllPoints()
+card.bg:SetTexture(MEDIA .. "card.tga")
+card.bg:SetTexCoord(0, 1, 0, 84 / 128)
 
-card.name = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-card.name:SetPoint("TOPLEFT", card.portrait, "TOPRIGHT", 10, -1)
+-- Portrait sits inside a gold ring
+card.portrait = card:CreateTexture(nil, "ARTWORK")
+card.portrait:SetSize(48, 48)
+card.portrait:SetPoint("LEFT", 18, 0)
+card.ring = card:CreateTexture(nil, "OVERLAY")
+card.ring:SetSize(64, 64)
+card.ring:SetPoint("CENTER", card.portrait, "CENTER")
+card.ring:SetTexture(MEDIA .. "ring.tga")
+
+card.name = card:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+card.name:SetPoint("TOPLEFT", 88, -11)
 
 card.face = card:CreateTexture(nil, "ARTWORK")
 card.face:SetSize(16, 16)
@@ -38,19 +44,27 @@ card.face:SetPoint("TOPLEFT", card.name, "BOTTOMLEFT", 0, -3)
 card.face:SetTexture(FACE_TEXTURE)
 
 card.mood = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-card.mood:SetPoint("LEFT", card.face, "RIGHT", 4, 0)
+card.mood:SetPoint("LEFT", card.face, "RIGHT", 5, 0)
 
+-- Bond bar: dark backing, tinted glossy fill, gold groove on top, text inside
 card.bar = CreateFrame("StatusBar", nil, card)
-card.bar:SetSize(150, 12)
-card.bar:SetPoint("BOTTOMLEFT", card.portrait, "BOTTOMRIGHT", 10, 0)
-card.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-card.bar:SetStatusBarColor(0.67, 0.83, 0.45)
+card.bar:SetSize(150, 14)
+card.bar:SetPoint("BOTTOMLEFT", 88, 14)
+card.bar:SetStatusBarTexture(MEDIA .. "barfill.tga")
 card.bar:SetMinMaxValues(0, 1)
-card.bar.bg = card.bar:CreateTexture(nil, "BACKGROUND")
-card.bar.bg:SetAllPoints()
-card.bar.bg:SetColorTexture(0, 0, 0, 0.55)
-card.bar.text = card.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-card.bar.text:SetPoint("CENTER")
+card.bar.back = card.bar:CreateTexture(nil, "BACKGROUND")
+card.bar.back:SetAllPoints()
+card.bar.back:SetTexture(MEDIA .. "barback.tga")
+card.bar.groove = card.bar:CreateTexture(nil, "OVERLAY", nil, 1)
+card.bar.groove:SetPoint("TOPLEFT", -6, 5)
+card.bar.groove:SetPoint("BOTTOMRIGHT", 6, -5)
+card.bar.groove:SetTexture(MEDIA .. "barframe.tga")
+card.bar.rank = card.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+card.bar.rank:SetPoint("LEFT", 6, 0)
+card.bar.rank:SetDrawLayer("OVERLAY", 3)
+card.bar.left = card.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+card.bar.left:SetPoint("RIGHT", -6, 0)
+card.bar.left:SetDrawLayer("OVERLAY", 3)
 
 -- Shift+drag to move (unless locked); position saved in BeastBondDB.cardPos
 card:SetMovable(true)
@@ -125,9 +139,12 @@ local function Update()
         card.mood:SetText("")
     end
 
-    local _, bondName, progress, nextAt = BB:BondLevel(minutes)
+    local level, bondName, progress, nextAt = BB:BondLevel(minutes)
+    local tint = level == #BB.BOND_STEPS and BAR_GOLD or BAR_GREEN
+    card.bar:SetStatusBarColor(tint[1], tint[2], tint[3])
     card.bar:SetValue(progress)
-    card.bar.text:SetText(nextAt and L.BOND_NEXT:format(bondName, nextAt - minutes) or bondName)
+    card.bar.rank:SetText(bondName)
+    card.bar.left:SetText(nextAt and ((nextAt - minutes) .. " min") or "")
     card:Show()
 end
 BB.RefreshCard = Update
